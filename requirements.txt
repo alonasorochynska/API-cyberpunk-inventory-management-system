@@ -1,0 +1,6 @@
+alembic==1.13.2
+fastapi==0.115.0
+pydantic==2.9.2
+SQLAlchemy==2.0.35
+sqlalchemy-stubs==0.4
+uvicorn==0.30.6
