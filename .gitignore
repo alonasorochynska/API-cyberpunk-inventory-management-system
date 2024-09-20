@@ -1,2 +1,6 @@
 .idea/
 venv/
+alembic/versions/
+alembic.ini
+app/database.py
+tmp/
