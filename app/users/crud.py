@@ -13,6 +13,17 @@ def create_user(db: Session, user: UserCreate):
     return db_user
 
 
+def check_user_existence_by_username_or_email(db: Session, field_name: str, value: str):
+    """
+    Универсальная функция для поиска пользователя по любому полю
+    """
+    if field_name == "username":
+        return db.query(User).filter(User.username == value).first()
+    elif field_name == "email":
+        return db.query(User).filter(User.email == value).first()
+    return None
+
+
 def get_user_by_username(db: Session, username: str):
     return db.query(User).filter(User.username == username).first()
 

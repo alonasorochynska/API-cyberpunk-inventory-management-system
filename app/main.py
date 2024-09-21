@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.database import engine, get_db
 from app.users.auth import verify_password, create_access_token, get_current_user
-from app.users.crud import get_user_by_username, create_user
+from app.users.crud import get_user_by_username, create_user, check_user_existence_by_username_or_email
 from app.users.models import User
 from app.users.schemas import UserRead, UserCreate
 
@@ -19,16 +19,21 @@ app = FastAPI()
 
 @app.post("/register", response_model=UserRead)
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = get_user_by_username(db, username=user.username)
-    if db_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
+    db_user_by_username = check_user_existence_by_username_or_email(db=db, field_name="username", value=user.username)
+    if db_user_by_username:
+        raise HTTPException(status_code=400, detail="This username already registered")
+
+    db_user_by_email = check_user_existence_by_username_or_email(db=db, field_name="email", value=user.email)
+    if db_user_by_email:
+        raise HTTPException(status_code=400, detail="This email already registered")
+
     return create_user(db=db, user=user)
 
 
 @app.post("/token")
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = get_user_by_username(db, form_data.username)
-    if not user or not verify_password(form_data.password, user.hashed_password):
+    user = get_user_by_username(db=db, username=form_data.username)
+    if not user or not verify_password(plain_password=form_data.password, hashed_password=user.hashed_password):
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     access_token = create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer"}
@@ -69,7 +74,8 @@ def read_item(item_id: int, db: Session = Depends(get_db)):
 
 
 @app.get("/items/", response_model=List[schemas.ItemRead])
-def read_items(skip: int = 0, limit: int = 5, db: Session = Depends(get_db)):
+def read_items(page: int = 1, limit: int = 5, db: Session = Depends(get_db)):
+    skip = (page - 1) * limit
     items = crud.get_all_items(db=db, skip=skip, limit=limit)
     return items
 
@@ -79,7 +85,7 @@ def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db), current
     db_item = crud.get_item_by_name(db=db, name=item.name)
     if db_item:
         raise HTTPException(status_code=400, detail="Item already exists.")
-    return crud.create_item(db=db, item=item, owner_id=current_user.id)
+    return crud.create_item(db=db, item=item, creator_id=current_user.id)
 
 
 @app.put("/items/{item_id}", response_model=schemas.ItemRead)
@@ -96,3 +102,14 @@ def delete_item(item_id: int, db: Session = Depends(get_db)):
     if db_item is None:
         raise HTTPException(status_code=404, detail="Item not found.")
     return db_item
+
+
+@app.post("/inventory/add/{item_id}")
+def add_item(item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return crud.add_item_to_inventory(db=db, user_id=current_user.id, item_id=item_id)
+
+
+@app.delete("/inventory/remove/{item_id}")
+def remove_item(item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return crud.remove_item_from_inventory(db=db, user_id=current_user.id, item_id=item_id)
+

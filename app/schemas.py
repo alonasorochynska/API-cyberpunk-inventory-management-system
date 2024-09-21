@@ -32,6 +32,7 @@ class ItemCreate(ItemBase):
 
 class ItemRead(ItemBase):
     id: int
+    creator_id: int
     owner_id: Optional[int] = None
 
     class Config:

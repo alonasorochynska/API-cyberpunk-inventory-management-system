@@ -46,7 +46,7 @@ def validate_category_exists(db: Session, category_name: str):
         raise HTTPException(status_code=400, detail="This category does not exist! Create it first.")
 
 
-def create_item(db: Session, item: schemas.ItemCreate, owner_id: int):
+def create_item(db: Session, item: schemas.ItemCreate, creator_id: int):
     validate_category_exists(db=db, category_name=item.category)
     db_item = models.Item(
         name=item.name,
@@ -54,7 +54,7 @@ def create_item(db: Session, item: schemas.ItemCreate, owner_id: int):
         category=item.category,
         quantity=item.quantity,
         price=item.price,
-        owner_id=owner_id,
+        creator_id=creator_id,
     )
     db.add(db_item)
     db.commit()
@@ -81,3 +81,28 @@ def delete_item(db: Session, item_id: int):
         db.delete(db_item)
         db.commit()
     return db_item
+
+
+def add_item_to_inventory(db: Session, user_id: int, item_id: int):
+    item = db.query(models.Item).filter(models.Item.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    if item.owner_id == user_id:
+        raise HTTPException(status_code=400, detail="Item already in user's inventory")
+
+    item.owner_id = user_id
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+def remove_item_from_inventory(db: Session, user_id: int, item_id: int):
+    item = db.query(models.Item).filter(models.Item.id == item_id, models.Item.owner_id == user_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found in user's inventory")
+
+    item.owner_id = None
+    db.commit()
+    db.refresh(item)
+    return item

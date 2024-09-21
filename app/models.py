@@ -22,5 +22,8 @@ class Item(Base):
     quantity = Column(Integer)
     price = Column(Float)
 
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    owner = relationship("User", back_populates="inventory")
+    creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    creator = relationship("User", back_populates="created_items", foreign_keys=[creator_id])
+
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # why nul=T?
+    owner = relationship("User", back_populates="inventory", foreign_keys=[owner_id])
