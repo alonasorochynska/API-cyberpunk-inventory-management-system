@@ -1,6 +1,8 @@
-from sqlalchemy import Column, Integer, String, Text, Float
+from sqlalchemy import Column, Integer, String, Text, Float, ForeignKey
+from sqlalchemy.orm import relationship
 
 from app.database import Base
+from app.users.models import User
 
 
 class Category(Base):
@@ -19,3 +21,6 @@ class Item(Base):
     category = Column(String(255), nullable=False)
     quantity = Column(Integer)
     price = Column(Float)
+
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner = relationship("User", back_populates="inventory")

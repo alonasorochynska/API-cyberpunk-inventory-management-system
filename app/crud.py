@@ -46,7 +46,7 @@ def validate_category_exists(db: Session, category_name: str):
         raise HTTPException(status_code=400, detail="This category does not exist! Create it first.")
 
 
-def create_item(db: Session, item: schemas.ItemCreate):
+def create_item(db: Session, item: schemas.ItemCreate, owner_id: int):
     validate_category_exists(db=db, category_name=item.category)
     db_item = models.Item(
         name=item.name,
@@ -54,6 +54,7 @@ def create_item(db: Session, item: schemas.ItemCreate):
         category=item.category,
         quantity=item.quantity,
         price=item.price,
+        owner_id=owner_id,
     )
     db.add(db_item)
     db.commit()

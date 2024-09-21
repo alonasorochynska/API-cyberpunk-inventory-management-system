@@ -30,8 +30,9 @@ class ItemCreate(ItemBase):
     pass
 
 
-class Item(ItemBase):
+class ItemRead(ItemBase):
     id: int
+    owner_id: Optional[int] = None
 
     class Config:
         from_attributes = True
