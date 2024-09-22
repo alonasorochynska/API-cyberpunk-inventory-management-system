@@ -1,11 +1,10 @@
-from typing import List
-
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
 from app.database import engine, get_db
+from app.pagination import paginate, PaginatedResponse
 from app.users.auth import verify_password, create_access_token, get_current_user
 from app.users.crud import get_user_by_username, create_user, check_user_existence_by_username_or_email
 from app.users.models import User
@@ -44,9 +43,10 @@ def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-@app.get("/categories/", response_model=List[schemas.Category])
-def read_categories(skip: int = 0, limit: int = 5, db: Session = Depends(get_db)):
-    return crud.get_all_categories(db=db, skip=skip, limit=limit)
+@app.get("/categories/", response_model=PaginatedResponse[schemas.Category])
+def read_categories(page: int = 1, limit: int = 5, db: Session = Depends(get_db), request: Request = None):
+    query = db.query(models.Category)
+    return paginate(query, page, limit, request)
 
 
 @app.post("/categories/", response_model=schemas.Category)
@@ -73,11 +73,10 @@ def read_item(item_id: int, db: Session = Depends(get_db)):
     return db_item
 
 
-@app.get("/items/", response_model=List[schemas.ItemRead])
-def read_items(page: int = 1, limit: int = 5, db: Session = Depends(get_db)):
-    skip = (page - 1) * limit
-    items = crud.get_all_items(db=db, skip=skip, limit=limit)
-    return items
+@app.get("/items/", response_model=PaginatedResponse[schemas.ItemRead])
+def read_items(page: int = 1, limit: int = 5, db: Session = Depends(get_db), request: Request = None):
+    query = db.query(models.Item)
+    return paginate(query, page, limit, request)
 
 
 @app.post("/items/", response_model=schemas.ItemRead)
@@ -89,8 +88,8 @@ def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db), current
 
 
 @app.put("/items/{item_id}", response_model=schemas.ItemRead)
-def update_item(item_id: int, item: schemas.ItemCreate, db: Session = Depends(get_db)):
-    db_item = crud.update_item(db=db, item_id=item_id, updated_item_data=item)
+def update_item(item_id: int, item: schemas.ItemUpdateDescription, db: Session = Depends(get_db)):
+    db_item = crud.update_item_description(db=db, item_id=item_id, updated_item_data=item)
     if db_item is None:
         raise HTTPException(status_code=404, detail="Item not found.")
     return db_item

@@ -25,5 +25,5 @@ class Item(Base):
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     creator = relationship("User", back_populates="created_items", foreign_keys=[creator_id])
 
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # why nul=T?
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     owner = relationship("User", back_populates="inventory", foreign_keys=[owner_id])

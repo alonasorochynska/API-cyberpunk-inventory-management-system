@@ -8,10 +8,6 @@ def get_category_by_name(db: Session, name: str):
     return db.query(models.Category).filter(models.Category.name == name).first()
 
 
-def get_all_categories(db: Session, skip: int = 0, limit: int = 5):
-    return db.query(models.Category).offset(skip).limit(limit).all()
-
-
 def create_category(db: Session, category: schemas.CategoryCreate):
     db_category = models.Category(name=category.name)
     db.add(db_category)
@@ -36,10 +32,6 @@ def get_item_by_name(db: Session, name: str):
     return db.query(models.Item).filter(models.Item.name == name).first()
 
 
-def get_all_items(db: Session, skip: int = 0, limit: int = 5):
-    return db.query(models.Item).offset(skip).limit(limit).all()
-
-
 def validate_category_exists(db: Session, category_name: str):
     category = get_category_by_name(db=db, name=category_name)
     if not category:
@@ -62,16 +54,15 @@ def create_item(db: Session, item: schemas.ItemCreate, creator_id: int):
     return db_item
 
 
-def update_item(db: Session, item_id: int, updated_item_data: schemas.ItemCreate):
-
+def update_item_description(db: Session, item_id: int, updated_item_data: schemas.ItemUpdateDescription):
     db_item = db.query(models.Item).filter(models.Item.id == item_id).first()
-    if db_item:
-        validate_category_exists(db=db, category_name=updated_item_data.category)
-        update_data = updated_item_data.model_dump()
-        for key, value in update_data.items():
-            setattr(db_item, key, value)
+
+    if db_item and updated_item_data.description is not None:
+        db_item.description = updated_item_data.description
+
         db.commit()
         db.refresh(db_item)
+
     return db_item
 
 

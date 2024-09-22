@@ -37,3 +37,7 @@ class ItemRead(ItemBase):
 
     class Config:
         from_attributes = True
+
+
+class ItemUpdateDescription(BaseModel):
+    description: Optional[str] = None
