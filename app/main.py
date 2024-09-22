@@ -1,12 +1,12 @@
-from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi import FastAPI, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
 from app.database import engine, get_db
 from app.pagination import paginate, PaginatedResponse
-from app.users.auth import verify_password, create_access_token, get_current_user
-from app.users.crud import get_user_by_username, create_user, check_user_existence_by_username_or_email
+from app.users.auth import get_current_user
+from app.users.crud import create_user, authenticate_user
 from app.users.models import User
 from app.users.schemas import UserRead, UserCreate
 
@@ -18,23 +18,12 @@ app = FastAPI()
 
 @app.post("/register", response_model=UserRead)
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
-    db_user_by_username = check_user_existence_by_username_or_email(db=db, field_name="username", value=user.username)
-    if db_user_by_username:
-        raise HTTPException(status_code=400, detail="This username already registered")
-
-    db_user_by_email = check_user_existence_by_username_or_email(db=db, field_name="email", value=user.email)
-    if db_user_by_email:
-        raise HTTPException(status_code=400, detail="This email already registered")
-
     return create_user(db=db, user=user)
 
 
 @app.post("/token")
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = get_user_by_username(db=db, username=form_data.username)
-    if not user or not verify_password(plain_password=form_data.password, hashed_password=user.hashed_password):
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
-    access_token = create_access_token(data={"sub": str(user.id)})
+    access_token = authenticate_user(db=db, username=form_data.username, password=form_data.password)
     return {"access_token": access_token, "token_type": "bearer"}
 
 
