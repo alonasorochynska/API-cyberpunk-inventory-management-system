@@ -10,11 +10,11 @@ from app.users.auth import get_password_hash, verify_password, create_access_tok
 def create_user(db: Session, user: UserCreate):
     db_user_by_username = check_user_existence_by_username_or_email(db=db, field_name="username", value=user.username)
     if db_user_by_username:
-        raise HTTPException(status_code=400, detail="This username already registered")
+        raise HTTPException(status_code=400, detail="This username already registered.")
 
     db_user_by_email = check_user_existence_by_username_or_email(db=db, field_name="email", value=user.email)
     if db_user_by_email:
-        raise HTTPException(status_code=400, detail="This email already registered")
+        raise HTTPException(status_code=400, detail="This email already registered.")
 
     hashed_password = get_password_hash(user.password)
     db_user = User(username=user.username, email=user.email, hashed_password=hashed_password)
