@@ -13,7 +13,38 @@ from app.users.schemas import UserRead, UserCreate
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI(
+    title="Cyberpunk Inventory Management API",
+    description="This system manages the items that players can acquire in the game.",
+    version="1.0.0",
+    contact={
+        "name": "Alona",
+        "email": "alona.sorochynska.job@gmail.com",
+    },
+    license_info={
+        "name": "MIT",
+        "url": "https://opensource.org/licenses/MIT",
+    }
+)
+
+
+@app.get("/")
+def welcome_message():
+    return {
+        "message": "Welcome to the Cyberpunk Inventory Management System API!",
+        "info": "Use this API to manage users, items, and inventory. Access token "
+                "authentication is required for most operations.",
+        "endpoints": {
+            "register": "/register",
+            "login": "/token",
+            "get_current_user": "/users/me",
+            "get_items": "/items/",
+            "get_categories": "/categories/",
+            "documentation": "/docs"
+        },
+        "note": "You can explore and test the API through the interactive documentation "
+                "available at /docs."
+    }
 
 
 @app.post("/register", response_model=UserRead)
@@ -85,4 +116,3 @@ def assign_item_to_user_inventory(item_id: int, db: Session = Depends(get_db), c
 @app.delete("/inventory/remove/{item_id}")
 def remove_item_from_user_inventory(item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return crud.remove_item_from_inventory(db=db, user_id=current_user.id, item_id=item_id)
-
