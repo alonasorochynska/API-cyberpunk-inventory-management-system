@@ -1,4 +1,4 @@
-from fastapi import Request
+from fastapi import Request, HTTPException
 from typing import List, Generic, TypeVar, Optional
 from pydantic import BaseModel
 
@@ -17,6 +17,9 @@ class PaginatedResponse(BaseModel, Generic[T]):
 
 
 def paginate(query, page: int, limit: int, request: Request):
+    if page < 1 or limit < 1:
+        raise HTTPException(status_code=400, detail="Page and limit must be greater than 0.")
+
     total_items = query.count()
     total_pages = (total_items + limit - 1) // limit
     skip = (page - 1) * limit

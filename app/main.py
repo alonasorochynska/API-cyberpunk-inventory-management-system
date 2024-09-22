@@ -44,71 +44,56 @@ def read_users_me(current_user: User = Depends(get_current_user)):
 
 
 @app.get("/categories/", response_model=PaginatedResponse[schemas.Category])
-def read_categories(page: int = 1, limit: int = 5, db: Session = Depends(get_db), request: Request = None):
-    query = db.query(models.Category)
+def read_all_categories(page: int = 1, limit: int = 5, db: Session = Depends(get_db), request: Request = None):
+    query = crud.get_all_categories_query(db=db)
     return paginate(query, page, limit, request)
 
 
 @app.post("/categories/", response_model=schemas.Category)
-def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db)):
-    db_category = crud.get_category_by_name(db=db, name=category.name)
-    if db_category:
-        raise HTTPException(status_code=400, detail="This category already exists.")
+def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return crud.create_category(db=db, category=category)
 
 
 @app.delete("/categories/{category_id}", response_model=schemas.Category)
-def delete_category(category_id: int, db: Session = Depends(get_db)):
+def remove_category(category_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     db_category = crud.delete_category(db=db, category_id=category_id)
-    if db_category is None:
-        raise HTTPException(status_code=404, detail="Category not found.")
     return db_category
 
 
 @app.get("/items/{item_id}", response_model=schemas.ItemRead)
 def read_item(item_id: int, db: Session = Depends(get_db)):
-    db_item = crud.get_item_by_id(db=db, item_id=item_id)
-    if db_item is None:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return db_item
+    return crud.get_item_by_id(db=db, item_id=item_id)
 
 
 @app.get("/items/", response_model=PaginatedResponse[schemas.ItemRead])
-def read_items(page: int = 1, limit: int = 5, db: Session = Depends(get_db), request: Request = None):
-    query = db.query(models.Item)
+def read_all_items(page: int = 1, limit: int = 5, db: Session = Depends(get_db), request: Request = None):
+    query = crud.get_all_items_query(db=db)
     return paginate(query, page, limit, request)
 
 
 @app.post("/items/", response_model=schemas.ItemRead)
 def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    db_item = crud.get_item_by_name(db=db, name=item.name)
-    if db_item:
-        raise HTTPException(status_code=400, detail="Item already exists.")
     return crud.create_item(db=db, item=item, creator_id=current_user.id)
 
 
 @app.put("/items/{item_id}", response_model=schemas.ItemRead)
-def update_item(item_id: int, item: schemas.ItemUpdateDescription, db: Session = Depends(get_db)):
+def update_item(item_id: int, item: schemas.ItemUpdateDescription, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     db_item = crud.update_item_description(db=db, item_id=item_id, updated_item_data=item)
-    if db_item is None:
-        raise HTTPException(status_code=404, detail="Item not found.")
     return db_item
 
 
 @app.delete("/items/{item_id}", response_model=schemas.ItemRead)
-def delete_item(item_id: int, db: Session = Depends(get_db)):
+def remove_item(item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     db_item = crud.delete_item(db=db, item_id=item_id)
-    if db_item is None:
-        raise HTTPException(status_code=404, detail="Item not found.")
     return db_item
 
 
 @app.post("/inventory/add/{item_id}")
-def add_item(item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def assign_item_to_user_inventory(item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return crud.add_item_to_inventory(db=db, user_id=current_user.id, item_id=item_id)
 
 
 @app.delete("/inventory/remove/{item_id}")
-def remove_item(item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def remove_item_from_user_inventory(item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return crud.remove_item_from_inventory(db=db, user_id=current_user.id, item_id=item_id)
 
