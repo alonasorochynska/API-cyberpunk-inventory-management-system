@@ -7,10 +7,11 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
 
-from app.database import Base, get_db
-from app.main import app
-from app.users.auth import SECRET_KEY, ALGORITHM, get_password_hash, verify_password, create_access_token
-from app.users.models import User
+from database import Base, get_db
+from main import app
+from config import SECRET_KEY, ALGORITHM
+from users.auth import get_password_hash, verify_password, create_access_token
+from users.models import User
 
 POSTGRESQL_TEST_DATABASE_URL = "postgresql://test_user:test_password@localhost:5432/test_cyberpunk"
 

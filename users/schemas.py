@@ -1,7 +1,7 @@
 from typing import List
 from pydantic import BaseModel, EmailStr
 
-from app.schemas import ItemRead
+from inventory.schemas import ItemRead
 
 
 class UserBase(BaseModel):

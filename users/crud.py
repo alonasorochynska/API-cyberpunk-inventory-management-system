@@ -2,9 +2,9 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
 
-from app.users.models import User
-from app.users.schemas import UserCreate
-from app.users.auth import get_password_hash, verify_password, create_access_token
+from users.models import User
+from users.schemas import UserCreate
+from users.auth import get_password_hash, verify_password, create_access_token
 
 
 def create_user(db: Session, user: UserCreate):

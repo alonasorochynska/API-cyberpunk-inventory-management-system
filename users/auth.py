@@ -6,9 +6,9 @@ from datetime import datetime, timedelta, timezone
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-from app.config import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
-from app.users.models import User
-from app.database import get_db
+from config import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
+from users.models import User
+from database import get_db
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

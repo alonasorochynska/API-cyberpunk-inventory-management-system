@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app import models, schemas
+from inventory import models, schemas
 
 
 def get_category_by_name(db: Session, name: str):
