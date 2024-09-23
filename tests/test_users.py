@@ -1,71 +1,10 @@
 from datetime import timedelta
 
-import pytest
 from jose import jwt
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
-from fastapi.testclient import TestClient
 
-from database import Base, get_db
-from main import app
 from config import SECRET_KEY, ALGORITHM
+from users import models
 from users.auth import get_password_hash, verify_password, create_access_token
-from users.models import User
-
-POSTGRESQL_TEST_DATABASE_URL = "postgresql://test_user:test_password@localhost:5432/test_cyberpunk"
-
-engine = create_engine(
-    POSTGRESQL_TEST_DATABASE_URL,
-    poolclass=StaticPool,
-)
-
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base.metadata.create_all(bind=engine)
-
-
-@pytest.fixture(scope="function")
-def db_session():
-    """Create a new database session with a rollback at the end of the test."""
-    connection = engine.connect()
-    transaction = connection.begin()
-    session = TestingSessionLocal(bind=connection)
-
-    yield session
-
-    session.close()
-    transaction.rollback()
-    connection.close()
-
-
-@pytest.fixture(scope="function")
-def test_client(db_session):
-    """Create a test client that uses the override_get_db fixture to return a session."""
-
-    def override_get_db():
-        try:
-            yield db_session
-        finally:
-            db_session.close()
-
-    app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as client:
-        yield client
-
-
-@pytest.fixture(scope="function")
-def create_test_user(db_session):
-    """Fixture to create a test user."""
-    user = User(
-        username="testuser",
-        email="testuser@example.com",
-        hashed_password=get_password_hash("password123"),
-        is_active=True
-    )
-    db_session.add(user)
-    db_session.commit()
-    yield user
 
 
 def test_correct_user_registration(test_client):
@@ -134,7 +73,7 @@ def test_login_wrong_username(test_client, create_test_user):
 
 def test_login_inactive_user(test_client, db_session):
     """Test login with an inactive user."""
-    user = User(
+    user = models.User(
         username="inactiveuser",
         email="inactiveuser@example.com",
         hashed_password=get_password_hash("password123"),
