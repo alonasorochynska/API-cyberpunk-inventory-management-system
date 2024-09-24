@@ -1,4 +1,4 @@
 .idea/
 venv/
-alembic/versions/
 .env
+ __pycache__/
