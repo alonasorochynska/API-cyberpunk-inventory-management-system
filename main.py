@@ -28,7 +28,7 @@ app.include_router(users_router.router)
 app.include_router(inventory_router.router)
 
 
-@app.get("/")
+@app.get("/", tags=["initial"])
 def welcome_message():
     return {
         "message": "Welcome to the Cyberpunk Inventory Management System API!",
