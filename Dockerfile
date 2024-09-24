@@ -21,5 +21,3 @@ RUN chown -R my_user /files/media
 RUN chmod -R 755 /files/media
 
 USER my_user
-
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

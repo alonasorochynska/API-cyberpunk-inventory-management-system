@@ -6,15 +6,13 @@ services:
       context: .
     env_file:
       - .env
-    environment:
-      - ENV=container  # remove
     ports:
-      - "8001:8000"
+      - "8000:8000"
     volumes:
       - ./:/app
       - my_media:/files/media
     command: >
-      sh -c "uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+      sh -c "uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
     depends_on:
       - db
 
