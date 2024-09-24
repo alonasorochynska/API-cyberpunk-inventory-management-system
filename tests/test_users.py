@@ -1,13 +1,15 @@
 from datetime import timedelta
 
 from jose import jwt
+from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 
 from config import SECRET_KEY, ALGORITHM
 from users import models
 from users.auth import get_password_hash, verify_password, create_access_token
 
 
-def test_correct_user_registration(test_client):
+def test_correct_user_registration(test_client: TestClient):
     """Example test for user registration."""
     response = test_client.post("/register", json={
         "username": "newuser",
@@ -18,7 +20,10 @@ def test_correct_user_registration(test_client):
     assert response.json()["username"] == "newuser"
 
 
-def test_register_existing_username(test_client, create_test_user):
+def test_register_existing_username(
+        test_client: TestClient,
+        create_test_user: models.User
+):
     """Test registration with an already existing username."""
     response = test_client.post("/register", json={
         "username": "testuser",
@@ -29,7 +34,10 @@ def test_register_existing_username(test_client, create_test_user):
     assert response.json()["detail"] == "This username already registered."
 
 
-def test_register_existing_email(test_client, create_test_user):
+def test_register_existing_email(
+        test_client: TestClient,
+        create_test_user: models.User
+):
     """Test registration with an already existing email."""
     response = test_client.post("/register", json={
         "username": "anotheruser",
@@ -40,7 +48,10 @@ def test_register_existing_email(test_client, create_test_user):
     assert response.json()["detail"] == "This email already registered."
 
 
-def test_success_user_login(test_client, create_test_user):
+def test_success_user_login(
+        test_client: TestClient,
+        create_test_user: models.User
+):
     """Test successful user login."""
     response = test_client.post("/token", data={
         "username": "testuser",
@@ -51,7 +62,10 @@ def test_success_user_login(test_client, create_test_user):
     assert response.json()["token_type"] == "bearer"
 
 
-def test_login_wrong_password(test_client, create_test_user):
+def test_login_wrong_password(
+        test_client: TestClient,
+        create_test_user: models.User
+):
     """Test login with incorrect password."""
     response = test_client.post("/token", data={
         "username": "testuser",
@@ -61,8 +75,11 @@ def test_login_wrong_password(test_client, create_test_user):
     assert response.json()["detail"] == "Incorrect username or password."
 
 
-def test_login_wrong_username(test_client, create_test_user):
-    """Test login with incorrect password."""
+def test_login_wrong_username(
+        test_client: TestClient,
+        create_test_user: models.User
+):
+    """Test login with incorrect username."""
     response = test_client.post("/token", data={
         "username": "testuser.",
         "password": "password123"
@@ -71,12 +88,15 @@ def test_login_wrong_username(test_client, create_test_user):
     assert response.json()["detail"] == "Incorrect username or password."
 
 
-def test_login_inactive_user(test_client, db_session):
+def test_login_inactive_user(
+        test_client: TestClient,
+        db_session: Session
+):
     """Test login with an inactive user."""
     user = models.User(
         username="inactiveuser",
         email="inactiveuser@example.com",
-        hashed_password=get_password_hash("password123"),
+        hashed_password=get_password_hash(password="password123"),
         is_active=False
     )
     db_session.add(user)
@@ -92,18 +112,22 @@ def test_login_inactive_user(test_client, db_session):
 
 def test_password_hashing():
     plain_password = "password123"
-    hashed_password = get_password_hash(plain_password)
+    hashed_password = get_password_hash(password=plain_password)
 
     assert hashed_password != plain_password
-    assert verify_password(plain_password, hashed_password)
+    assert verify_password(
+        plain_password=plain_password, hashed_password=hashed_password
+    )
 
 
 def test_password_verification_failure():
     plain_password = "password123"
     wrong_password = "password123."
-    hashed_password = get_password_hash(plain_password)
+    hashed_password = get_password_hash(password=plain_password)
 
-    assert not verify_password(wrong_password, hashed_password)
+    assert not verify_password(
+        plain_password=wrong_password, hashed_password=hashed_password
+    )
 
 
 def test_jwt_token_creation():
@@ -127,7 +151,10 @@ def test_jwt_token_expired():
         assert True
 
 
-def test_get_current_user(test_client, create_test_user):
+def test_get_current_user(
+        test_client: TestClient,
+        create_test_user: models.User
+):
     token = create_access_token(data={"sub": str(create_test_user.id)})
 
     headers = {"Authorization": f"Bearer {token}"}
@@ -137,7 +164,7 @@ def test_get_current_user(test_client, create_test_user):
     assert response.json()["username"] == create_test_user.username
 
 
-def test_invalid_token(test_client):
+def test_invalid_token(test_client: TestClient):
     invalid_token = "invalid.token.value"
     headers = {"Authorization": f"Bearer {invalid_token}"}
 

@@ -6,6 +6,9 @@ from database import Base
 
 
 class User(Base, SQLAlchemyBaseUserTable):
+    """
+    Represents a user in the system.
+    """
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
@@ -14,6 +17,10 @@ class User(Base, SQLAlchemyBaseUserTable):
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
 
-    created_items = relationship("Item", back_populates="creator", foreign_keys="Item.creator_id")
+    created_items = relationship(
+        "Item", back_populates="creator", foreign_keys="Item.creator_id"
+    )
 
-    inventory = relationship("Item", back_populates="owner", foreign_keys="Item.owner_id")
+    inventory = relationship(
+        "Item", back_populates="owner", foreign_keys="Item.owner_id"
+    )

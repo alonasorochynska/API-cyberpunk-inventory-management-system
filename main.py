@@ -12,7 +12,8 @@ router = APIRouter()
 
 app = FastAPI(
     title="Cyberpunk Inventory Management API",
-    description="This system manages the items that players can acquire in the game.",
+    description="This system manages the items "
+                "that players can acquire in the game.",
     version="1.0.0",
     contact={
         "name": "Alona",
@@ -30,18 +31,20 @@ app.include_router(inventory_router.router)
 
 @app.get("/", tags=["initial"])
 def welcome_message():
+    """Return a welcome message with basic API usage information."""
     return {
         "message": "Welcome to the Cyberpunk Inventory Management System API!",
-        "info": "Use this API to manage users, items, and inventory. Access token "
-                "authentication is required for most operations.",
+        "info": "Use this API to manage users, items, and inventory. "
+                "Access token authentication is required for most operations.",
         "endpoints": {
             "register": "/register",
             "login": "/token",
             "get_current_user": "/users/me",
             "get_items": "/items/",
             "get_categories": "/categories/",
-            "documentation": "/docs"
+            "documentation_swagger": "/docs",
+            "documentation_redoc": "/redoc"
         },
-        "note": "You can explore and test the API through the interactive documentation "
-                "available at /docs."
+        "note": "You can explore and test the API through the interactive "
+                "documentation available at /docs."
     }

@@ -5,6 +5,9 @@ from database import Base
 
 
 class Category(Base):
+    """
+    Represents a category in the system.
+    """
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -12,6 +15,11 @@ class Category(Base):
 
 
 class Item(Base):
+    """
+    Represents an item in the system, including relationships
+    to the user who created it and its owner.
+    """
+
     __tablename__ = "items"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -22,7 +30,11 @@ class Item(Base):
     price = Column(Float)
 
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    creator = relationship("User", back_populates="created_items", foreign_keys=[creator_id])
+    creator = relationship(
+        "User", back_populates="created_items", foreign_keys=[creator_id]
+    )
 
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    owner = relationship("User", back_populates="inventory", foreign_keys=[owner_id])
+    owner = relationship(
+        "User", back_populates="inventory", foreign_keys=[owner_id]
+    )
