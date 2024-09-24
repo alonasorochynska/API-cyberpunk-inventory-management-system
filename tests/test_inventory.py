@@ -496,3 +496,10 @@ def test_app_initialization(test_client):
     """Test if the FastAPI app initializes successfully."""
     response = test_client.get("/")
     assert response.status_code == 200
+
+
+def test_docs_available(test_client):
+    """Test if the Swagger documentation is available."""
+    response = test_client.get("/docs")
+    assert response.status_code == 200
+
